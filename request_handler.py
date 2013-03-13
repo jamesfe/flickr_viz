@@ -126,12 +126,12 @@ def updateNegativeJob(conObject, job):
 		return(-1)
 
 def parseJobPage(jobJect)
-	## parses a page given by the jobject, requires a valid page number
+	"""parseJobPage - parses a page given by the jobject, requires a valid page number
+    
+    jobJect - a valid job object"""
     apikey = fg.apikey
 	job = jobJect
-	#	bbox = str(job.ulCoord.lon)+","+str(job.ulCoord.lat)+","+str(job.lrCoord.lon)+","\
-#			 #+str(job.lrCoord.lat)
-	bbox = job.apiBox()
+    bbox = job.apiBox()
 	log(bbox)
 	queryURL = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key="
 	queryURL += apikey
@@ -187,7 +187,11 @@ def parseJobPage(jobJect)
 	## returns a list of flickrJects
 
 def insertFlickrLines(conObject, flickrJects):
-	## for each flickrJect, inserts it into the database
+	"""for each flickrJect, inserts it into the database
+
+    conOject - [cursor, connection] pair
+    flickrJects - array of [line, ingestDict, query]
+    returns 1 for success, -1 fail; logs MySQL errors"""
 	for line in flickrJects:
 		try:
 			conObject['cursor'].execute(line[2])
@@ -197,9 +201,14 @@ def insertFlickrLines(conObject, flickrJects):
 			log(str(e.args[0])+": "+str(e.args[1]))
 			return(-1)
 	return(1)
-	## returns 1 for good, -1 for fail
 
 def incrementPageCountTo(conObject, jobID, newPages):
+    """Increases pages completed.
+
+    conObject - [cursor,connection] pair
+    jobID - current job ID (int)
+    newPages - new page count
+    returns - (new) number of pages complete."""
 	updateQuery = "UPDATE fv2_requests SET pagesdone="+str(newPages)+" WHERE req_id="+str(jobID)
 	log(updateQuery)
 	newPagesDone = 0
@@ -219,16 +228,24 @@ def incrementPageCountTo(conObject, jobID, newPages):
 	return(newPagesDone)	
 
 def log(msg):
-#	global outputLog
-	outputLog.write(str(msg)+"\n")
+	"""logging function - uses a file for output rather than print statements"""
+    outputLog.write(str(msg)+"\n")
 
 logDir = fg.logDir
 outputLog = file(logDir+str(time.time()).split(".")[0]+"_pygrablog.txt", 'w')
 
 def main():
+    """main runner for program.
+
+    Performs a single overarching task: process new lines of flickr data into db
+    Steps:
+    1. Retrieve new joblist (negative statuses)
+    2. Update negative statuses to positive pagecounts
+    3. In order of job entry, lowest to highest, download new data for each job.
+    4. Upon 3500 seconds of runtime, close connections and wait for new cron run.
+    """
 	print time.asctime()+" - starting"
 	startTime = time.time()
-	##outputLog.write(time.asctime()+" - Retrieving negative statuses...\n")
 	log(time.asctime()+" - Retrieving negative statuses, connecting, etc...")
 	conObject = mysql_connect()
 	negStatuses = getNegativeStatusList(conObject)
@@ -247,7 +264,6 @@ def main():
 			break
 		jCount = 0
 		while(job.pagesDone<=job.totalPages):
-#		while(job.pagesDone<=job.totalPages) & (jCount<1):
 			if((time.time()-startTime) > 3500):
 				break;
 			jCount+=1
