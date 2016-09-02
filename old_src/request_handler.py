@@ -16,10 +16,10 @@ class coord:
 class grabJob:
     """grabJob is a class to describe jobs coordinates and ancillary data
 
-    some of the methods help in formatting requests to the flickr server""" 
+    some of the methods help in formatting requests to the flickr server"""
 	def __init__(self, fromDate, toDate, ulCoord, lrCoord, pagesDone, totalPages, jobID):
         """__init__ takes a number of arguments:
-    
+
         fromDate - starting time of pull (MySQL DATE)
         toDate - ending time of pull (MySQL DATE)
         coords - upper left & lower right 'coord' types
@@ -44,11 +44,11 @@ class grabJob:
 		return(retString)
 	def jobBox(self):
         """jobBox presents a human-readable job boundary box for the logfiles
-        other output.""" 
+        other output."""
 		retString =  "("+str(self.ulCoord.lat)+", "+str(self.ulCoord.lon)+", "
 		retString += str(self.lrCoord.lat)+", "+str(self.lrCoord.lon)+")"
 		return(retString)
-	
+
 def mysql_connect():
 	"""returns a [cursor, connection] pair"""
 	try:
@@ -76,7 +76,7 @@ def getNegativeStatusList(conObject):
 
 def getWorkableJobsList(conObject):
 	"""get a list of workable jobs, ordered by request id (asc)
-    
+
     conObject is a full [cursor, conn] pair
     returns a list of 'jobJects'"""
 	positiveQuery = "SELECT * FROM fv2_requests WHERE pagesdone>=0 ORDER BY req_id ASC"
@@ -93,7 +93,7 @@ def updateNegativeJob(conObject, job):
     """updateNegativeJob starts work on a job.  It finds the number of pages (work to be done)
     and returns this number to the handler, which can then allocate more work to be done here.
 
-    conObject - [cursor, conn] pair 
+    conObject - [cursor, conn] pair
     job - jobID
     returns number of pages to be completed, -1 on fail."""
 	apikey = fg.apikey
@@ -127,7 +127,7 @@ def updateNegativeJob(conObject, job):
 
 def parseJobPage(jobJect)
 	"""parseJobPage - parses a page given by the jobject, requires a valid page number
-    
+
     jobJect - a valid job object"""
     apikey = fg.apikey
 	job = jobJect
@@ -180,10 +180,10 @@ def parseJobPage(jobJect)
 					columnQuery+=str(col)+", "
 			valueQuery+=str(job.jobID)
 			columnQuery+="collect_note"
-			query+=columnQuery+") VALUES ("+valueQuery+")" 
+			query+=columnQuery+") VALUES ("+valueQuery+")"
 			lCount+=1
 			retPage.append([line, ingestDict, query])
-	return(retPage)	
+	return(retPage)
 	## returns a list of flickrJects
 
 def insertFlickrLines(conObject, flickrJects):
@@ -225,7 +225,7 @@ def incrementPageCountTo(conObject, jobID, newPages):
 		log(updateQuery)
 		log(str(e.args[0])+": "+e.args[1])
 		return(-1)
-	return(newPagesDone)	
+	return(newPagesDone)
 
 def log(msg):
 	"""logging function - uses a file for output rather than print statements"""
